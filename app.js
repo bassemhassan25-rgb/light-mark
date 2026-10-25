@@ -64,13 +64,15 @@
   function initContent() {
     $$('[data-company]').forEach(el => el.textContent = C.company[el.dataset.company] || '');
     const title = $('#hero-title');
-    // نص العنوان بالكامل قابل للتعديل في content.js؛ السطر الأخير بلون الهوية.
-    const parts = C.hero.title.split('صورة');
-    if (parts.length === 2) title.innerHTML = `${escape(parts[0])}<span>صورة${escape(parts[1])}</span>`;
+    // نص العنوان ولون السطر البارز قابلان للتعديل من hero في content.js.
+    const highlightAt = C.hero.highlight ? C.hero.title.indexOf(C.hero.highlight) : -1;
+    if (highlightAt >= 0) title.innerHTML = `${escape(C.hero.title.slice(0,highlightAt))}<span class="hero-title-accent">${escape(C.hero.highlight)}</span>${escape(C.hero.title.slice(highlightAt+C.hero.highlight.length))}`;
     else title.textContent = C.hero.title;
     $('#hero-description').textContent = C.hero.description;
     $('#hero-primary').innerHTML = `${escape(C.hero.primary)} <span aria-hidden="true">↙</span>`;
-    $('#hero-secondary').innerHTML = `${icon('whatsapp')}${escape(C.hero.secondary)}`;
+    $('#hero-primary').href = C.hero.primaryHref;
+    $('#hero-secondary').innerHTML = `${escape(C.hero.secondary)} <span aria-hidden="true">←</span>`;
+    $('#hero-secondary').href = C.hero.secondaryHref;
     const textBindings = {'services-eyebrow':'servicesEyebrow','services-title':'servicesTitle','services-description':'servicesDescription','assistant-title':'assistantTitle','assistant-description':'assistantDescription','contact-title':'contactTitle','contact-description':'contactDescription','contact-note':'contactNote'};
     Object.entries(textBindings).forEach(([id,key]) => $('#'+id).textContent = C.sections[key]);
     $$('[data-icon]').forEach(el => el.innerHTML = icon(el.dataset.icon));
@@ -85,6 +87,73 @@
     $$('[data-phone]').forEach(el => el.href = `tel:${C.company.phone.replace(/[^+\d]/g,'')}`);
     $('#services-grid').innerHTML = C.services.map((s,i) => `<article class="service-card"><div class="service-top"><span class="service-icon">${icon(s.icon)}</span><span class="service-number" dir="ltr">0${i+1} /</span></div><span class="service-english" dir="ltr">${escape(s.english)}</span><h3>${escape(s.title)}</h3><p class="service-description">${escape(s.description)}</p><div class="service-tags">${s.tags.map(t=>`<span>${escape(t)}</span>`).join('')}</div><button type="button" class="service-select" data-select-service="${escape(s.id)}" aria-label="اختار خدمة ${escape(s.title)}">اختار الخدمة <span aria-hidden="true">↙</span></button></article>`).join('');
     initWorks();
+    initHeroVideo();
+  }
+  function initHeroVideo() {
+    const video = $('#hero-reel'), hero = $('.cinematic-hero'), button = $('#hero-video-toggle');
+    if(!video || !hero || !button) return;
+    const motion = matchMedia('(prefers-reduced-motion: reduce)');
+    const mobile = matchMedia('(max-width: 800px)');
+    let userPaused = false;
+    let inView = typeof IntersectionObserver === 'undefined';
+    const automaticAllowed = () => !motion.matches && !navigator.connection?.saveData;
+    const workIsPlaying = () => $$('.portfolio-video').some(player => !player.paused && !player.ended);
+    function updateButton() {
+      $('.hero-toggle-icon',button).textContent = video.paused ? '▶' : 'Ⅱ';
+      $('.hero-toggle-label',button).textContent = video.paused ? 'تشغيل الفيديو' : 'إيقاف الفيديو';
+      button.setAttribute('aria-label',video.paused ? 'تشغيل فيديو الافتتاحية' : 'إيقاف فيديو الافتتاحية');
+    }
+    async function playReel(manual = false) {
+      if(document.hidden || !inView) return;
+      if(!manual && (userPaused || !automaticAllowed() || workIsPlaying())) return;
+      if(manual) {
+        userPaused = false;
+        $$('.portfolio-video').forEach(player => {if(!player.paused) player.pause();});
+      }
+      video.defaultMuted = true;
+      video.muted = true;
+      video.volume = 0;
+      const source = mobile.matches ? C.hero.videoMobile : C.hero.videoDesktop;
+      if(video.getAttribute('src') !== source || video.error) {
+        video.poster = mobile.matches ? C.hero.posterMobile : C.hero.posterDesktop;
+        video.src = source;
+        video.load();
+      }
+      try { await video.play(); }
+      catch { hero.classList.remove('is-playing'); updateButton(); }
+    }
+    video.addEventListener('play',() => {
+      if(document.hidden || !inView || userPaused || workIsPlaying()) video.pause();
+      updateButton();
+    });
+    video.addEventListener('playing',() => hero.classList.add('is-playing'));
+    video.addEventListener('pause',updateButton);
+    video.addEventListener('error',() => {video.pause(); hero.classList.remove('is-playing'); updateButton();});
+    button.addEventListener('click',() => {
+      if(video.paused) playReel(true);
+      else {userPaused = true;video.pause();}
+    });
+    document.addEventListener('play',event => {
+      if(event.target.matches?.('.portfolio-video')) video.pause();
+    },true);
+    document.addEventListener('visibilitychange',() => {
+      if(document.hidden) video.pause();
+      else playReel();
+    });
+    motion.addEventListener?.('change',() => {
+      if(motion.matches) video.pause();
+      else playReel();
+    });
+    mobile.addEventListener?.('change',() => playReel());
+    if(typeof IntersectionObserver !== 'undefined') {
+      const observer = new IntersectionObserver(entries => {
+        inView = entries[0].isIntersecting;
+        if(inView) playReel();
+        else video.pause();
+      },{threshold:0.05});
+      observer.observe(hero);
+    } else playReel();
+    updateButton();
   }
   function initWorks() {
     initGallery(C.works, C.portfolio, {section:'works-section', title:'works-title', eyebrow:'works-eyebrow', description:'works-description', grid:'works-grid'});

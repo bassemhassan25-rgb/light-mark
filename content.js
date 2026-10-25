@@ -11,9 +11,12 @@ window.SITE_CONTENT = {
     { id: 'usa', label: 'واتساب أمريكا 🇺🇸', summaryLabel: 'إرسال الطلب إلى واتساب أمريكا', display: '+1 (949) 257-3300', number: '19492573300' }
   ],
   hero: {
-    title: 'خلّي شغلك يتشاف بصورة تليق بيه',
-    description: 'تصوير وصناعة محتوى وإدارة سوشيال ميديا للمشروعات والشركات في الكويت',
-    primary: 'اختار خدمتك', secondary: 'تواصل على واتساب'
+    title: 'فكرتك… تستاهل تتشاف', highlight: 'تستاهل تتشاف',
+    description: 'من التصوير لإعلانات الـAI وتصميم المواقع… بنحوّل فكرتك لحضور يلفت النظر',
+    primary: 'شوف شغلنا', secondary: 'ابدأ مشروعك',
+    primaryHref: '#works-section', secondaryHref: '#assistant',
+    videoDesktop: 'assets/hero/reel-desktop.mp4', videoMobile: 'assets/hero/reel-mobile.mp4',
+    posterDesktop: 'assets/hero/reel-poster-desktop.webp', posterMobile: 'assets/hero/reel-poster-mobile.webp'
   },
   sections: {
     servicesEyebrow: 'خدماتنا', servicesTitle: 'من الفكرة… للصورة اللي تترك أثر',
