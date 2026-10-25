@@ -89,6 +89,7 @@
   function initWorks() {
     initGallery(C.works, C.portfolio, {section:'works-section', title:'works-title', eyebrow:'works-eyebrow', description:'works-description', grid:'works-grid'});
     initGallery(C.aiAds.videos, C.aiAds, {section:'ai-food-ads', title:'ai-ads-title', eyebrow:'ai-ads-eyebrow', description:'ai-ads-description', grid:'ai-ads-grid'});
+    initGallery(C.fashion.videos, C.fashion, {section:'fashion-section', title:'fashion-title', eyebrow:'fashion-eyebrow', description:'fashion-description', grid:'fashion-grid'});
     initVideoPlayers();
   }
   function initGallery(items, portfolio, ids) {
